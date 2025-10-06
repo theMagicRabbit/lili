@@ -1,0 +1,4 @@
+package lili
+
+func main() {
+}
