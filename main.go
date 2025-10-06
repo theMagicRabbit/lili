@@ -19,6 +19,8 @@ func main() {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
-	fmt.Printf("%#vPrintln\n", htmlNode)
+	for n := range htmlNode.Descendants() {
+		fmt.Printf("%#v\n", n.Data)
+	}
 	os.Exit(0)
 }
