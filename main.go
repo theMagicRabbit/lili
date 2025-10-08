@@ -9,6 +9,12 @@ import (
 	"golang.org/x/net/html"
 )
 
+type Lead struct {
+	Name        string
+	CompanyName string
+	Geography   string
+}
+
 func main() {
 	htmlFile, err := os.Open("samples/sample_list.html")
 	if err != nil {
@@ -40,7 +46,11 @@ func main() {
 			return
 		case html.TextToken:
 			if div > 0 {
-				fmt.Println(string(z.Text()))
+				text := string(z.Text())
+				name := strings.TrimSpace(text)
+				if name != "" {
+					fmt.Println(name)
+				}
 			}
 		case html.StartTagToken, html.EndTagToken:
 			tn, hasAttr := z.TagName()
