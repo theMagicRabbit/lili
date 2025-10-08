@@ -30,7 +30,7 @@ func main() {
 	cleanFile.WriteString(screwYouLinkedInString)
 	defer cleanFile.Close()
 	
-	depth := 0
+	table, tr, div := 0, 0, 0
 	z := html.NewTokenizer(screwYouLinkedInReader)
 	for {
 		tt := z.Next()
@@ -39,16 +39,41 @@ func main() {
 			fmt.Println(z.Err().Error())
 			return
 		case html.TextToken:
-			if depth > 0 {
+			if div > 0 {
 				fmt.Println(string(z.Text()))
 			}
 		case html.StartTagToken, html.EndTagToken:
-			tn, _ := z.TagName()
-			if len(tn) == 1 && tn[0] == 'a' {
+			tn, hasAttr := z.TagName()
+			if  string(tn) == "table" {
 				if tt == html.StartTagToken {
-					depth++
+					table++
 				} else {
-					depth--
+					table--
+				}
+			} else if table > 0 && string(tn) == "tr" {
+				if tt == html.StartTagToken {
+					tr++
+				} else {
+					tr--
+				}
+			} else if tr > 0 && string(tn) == "div" {
+				divContainsData := false
+				ParseAttributes:
+					for hasAttr {
+						attrKey, attrVal, moreAttr := z.TagAttr()
+						hasAttr = moreAttr
+						switch string(attrKey) {
+						case "aria-label":
+							if string(attrVal) == "Lead Name" {
+								divContainsData = true
+								break ParseAttributes
+							}
+						}
+					}
+				if tt == html.StartTagToken && divContainsData {
+					div++
+				} else if tt == html.EndTagToken && div > 0{
+					div--
 				}
 			}
 		}
