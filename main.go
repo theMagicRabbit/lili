@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
-	
+	"strings"
+
 	"golang.org/x/net/html"
 )
 
@@ -13,9 +15,23 @@ func main() {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
+	defer htmlFile.Close()
+
+	htmlFileBytes, err := io.ReadAll(htmlFile)
+	screwYouLinkedInString := html.UnescapeString(string(htmlFileBytes))
+	screwYouLinkedInReader := strings.NewReader(screwYouLinkedInString)
+
+	cleanFile, err := os.Create("samples/sample_list_cleaned.html")
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+
+	cleanFile.WriteString(screwYouLinkedInString)
+	defer cleanFile.Close()
 	
 	depth := 0
-	z := html.NewTokenizer(htmlFile)
+	z := html.NewTokenizer(screwYouLinkedInReader)
 	for {
 		tt := z.Next()
 		switch tt {
@@ -37,5 +53,4 @@ func main() {
 			}
 		}
 	}
-
 }
