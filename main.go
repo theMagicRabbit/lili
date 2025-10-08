@@ -38,18 +38,28 @@ func main() {
 	
 	table, tr, div := 0, 0, 0
 	z := html.NewTokenizer(screwYouLinkedInReader)
-	for {
+
+	leadDirectory:= make(map[string]Lead)
+
+	moreTokens := true
+	for moreTokens {
 		tt := z.Next()
 		switch tt {
 		case html.ErrorToken:
-			fmt.Println(z.Err().Error())
-			return
+			moreTokens = false
 		case html.TextToken:
 			if div > 0 {
 				text := string(z.Text())
 				name := strings.TrimSpace(text)
 				if name != "" {
-					fmt.Println(name)
+					if lead, ok := leadDirectory[name]; ok {
+						lead.Name = name
+						leadDirectory[name] = lead
+					} else {
+						leadDirectory[name] = Lead{
+							Name: name,
+						}
+					}
 				}
 			}
 		case html.StartTagToken, html.EndTagToken:
@@ -87,5 +97,8 @@ func main() {
 				}
 			}
 		}
+	}
+	for _, val := range leadDirectory {
+		fmt.Println(val.Name)
 	}
 }
