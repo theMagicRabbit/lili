@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"strings"
 
@@ -198,8 +200,18 @@ func main() {
 			}
 		}
 	}
+
+	w := csv.NewWriter(os.Stdout)
 	for _, val := range leadDirectory {
-		fmt.Println(val.Name, val.Title, val.CompanyName, val.Geography)
+		if err := w.Write([]string{val.Name, val.Title, val.CompanyName, val.Geography}); err != nil {
+			log.Fatal(err)
+		}
+
+		w.Flush()
+
+		if err := w.Error(); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
