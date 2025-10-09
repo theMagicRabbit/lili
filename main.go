@@ -122,7 +122,7 @@ func main() {
 
 	outFile := fmt.Sprintf("%s.csv", time.Now().Format("2006-01-02-150405"))
 	outPath := path.Join(outputDir, outFile)
-	log.Println(outPath)
+	log.Printf("Writing CSV data to: %s\n",outPath)
 
 	outfile, err := os.Create(outPath)
 	if err != nil {
@@ -130,7 +130,7 @@ func main() {
 	}
 	defer outfile.Close()
 
-	stdout := csv.NewWriter(os.Stdout)
+	// stdout := csv.NewWriter(os.Stdout)
 	outfileW := csv.NewWriter(outfile)
 	for _, val := range liliState.LeadMap {
 		row := []string{val.Name, val.Title, val.CompanyName, val.Geography}
@@ -138,7 +138,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		stdout.Write(row)
+		// stdout.Write(row)
 	}
 
 	outfileW.Flush()
@@ -146,7 +146,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	stdout.Flush()
+	// stdout.Flush()
 }
 
 func (s *State) ProcessHTMLFile(fileName string, isFinished chan bool) {
