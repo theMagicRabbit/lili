@@ -2,10 +2,12 @@ package main
 
 import (
 	"encoding/csv"
+	"fmt"
 	"log"
 	"os"
+	"path"
+	"path/filepath"
 	"sync"
-
 )
 
 type Lead struct {
@@ -51,10 +53,35 @@ func main() {
 		log.Fatal(err)
 	}
 
+	input, ok := liliState.Config.Directories["input"]
+	if !ok {
+		log.Fatal("Input directory not listed in config")
+	}
+
+	userHome, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	inputDir := path.Join(userHome, input)
+	inputFileGlob := fmt.Sprintf("%s/*.html", inputDir)
+
+	inputFiles, err := filepath.Glob(inputFileGlob)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if len(inputFiles) == 0 {
+		log.Fatalf("No files found in: %s\n", inputDir)
+	}
+
 	mapCounter := 0
-	isFinished := make(chan bool, 1)
-	liliState.ChanMap[mapCounter] = isFinished 
-	go liliState.ProcessHTMLFile("samples/sample_list.html", isFinished)
+	for _, f := range inputFiles {
+		isFinished := make(chan bool, 1)
+		liliState.ChanMap[mapCounter] = isFinished
+		go liliState.ProcessHTMLFile(f, isFinished)
+		mapCounter++
+	}
 
 	liliState.TotalChans = len(liliState.ChanMap)
 	for liliState.FinishedChans < len(liliState.ChanMap) {
