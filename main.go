@@ -52,7 +52,7 @@ func main() {
 	cleanFile.WriteString(screwYouLinkedInString)
 	defer cleanFile.Close()
 	
-	table, tr, dataNode := 0, 0, 0
+	table, tr, dataDiv, dataSpan := 0, 0, 0, 0
 	z := html.NewTokenizer(screwYouLinkedInReader)
 
 	leadDirectory:= make(map[string]Lead)
@@ -70,7 +70,7 @@ func main() {
 		case html.ErrorToken:
 			moreTokens = false
 		case html.TextToken:
-			if dataNode > 0 {
+			if dataDiv > 0 || dataSpan > 0 {
 				text := strings.TrimSpace(string(z.Text()))
 				if text == "" {
 					break
@@ -151,36 +151,35 @@ func main() {
 						}
 					}
 				if tt == html.StartTagToken && divContainsData {
-					dataNode++
-				} else if tt == html.EndTagToken && dataNode > 0{
-					dataNode--
+					dataDiv++
+				} else if tt == html.EndTagToken && dataDiv > 0{
+					dataDiv--
+				}
+			} else if tr > 0 && string(tn) == "span" {
+				spanContainsData := false
+				ParseSpanAttributes:
+					for hasAttr {
+						attrKey, attrVal, moreAttr := z.TagAttr()
+						hasAttr = moreAttr
+						switch string(attrKey) {
+						case "data-anonymize":
+							if string(attrVal) == "company-name" {
+								liliState.LeadDataType = LeadDataCompanyName
+								spanContainsData = true
+								break ParseSpanAttributes
+							}
+						}
+					}
+				if tt == html.StartTagToken && spanContainsData {
+					dataSpan++
+				} else if tt == html.EndTagToken && dataSpan > 0{
+					dataSpan--
 				}
 			}
-			// else if tr > 0 && string(tn) == "span" {
-			// 	spanContainsData := false
-			// 	ParseSpanAttributes:
-			// 		for hasAttr {
-			// 			attrKey, attrVal, moreAttr := z.TagAttr()
-			// 			hasAttr = moreAttr
-			// 			switch string(attrKey) {
-			// 			case "data-anonymize":
-			// 				if string(attrVal) == "company-name" {
-			// 					liliState.LeadDataType = LeadDataCompanyName
-			// 					spanContainsData = true
-			// 					break ParseSpanAttributes
-			// 				}
-			// 			}
-			// 		}
-			// 	if tt == html.StartTagToken && spanContainsData {
-			// 		dataNode++
-			// 	} else if tt == html.EndTagToken && dataNode > 0{
-			// 		dataNode--
-			// 	}
-			// }
 		}
 	}
 	for _, val := range leadDirectory {
-		fmt.Println(val.Name, val.Title)
+		fmt.Println(val.Name, val.Title, val.CompanyName)
 	}
 }
 
