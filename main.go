@@ -52,7 +52,7 @@ func main() {
 	cleanFile.WriteString(screwYouLinkedInString)
 	defer cleanFile.Close()
 	
-	table, tr, dataDiv, dataSpan := 0, 0, 0, 0
+	table, tr, dataDiv, dataSpan, dataTD := 0, 0, 0, 0, 0
 	z := html.NewTokenizer(screwYouLinkedInReader)
 
 	leadDirectory:= make(map[string]Lead)
@@ -70,7 +70,7 @@ func main() {
 		case html.ErrorToken:
 			moreTokens = false
 		case html.TextToken:
-			if dataDiv > 0 || dataSpan > 0 {
+			if dataDiv > 0 || dataSpan > 0 || dataTD > 0 {
 				text := strings.TrimSpace(string(z.Text()))
 				if text == "" {
 					break
@@ -175,11 +175,31 @@ func main() {
 				} else if tt == html.EndTagToken && dataSpan > 0{
 					dataSpan--
 				}
+			} else if tr > 0 && string(tn) == "td" {
+				tdContainsData := false
+				ParseTDAttributes:
+					for hasAttr {
+						attrKey, attrVal, moreAttr := z.TagAttr()
+						hasAttr = moreAttr
+						switch string(attrKey) {
+						case "data-anonymize":
+							if string(attrVal) == "location" {
+								liliState.LeadDataType = LeadDataGeography
+								tdContainsData = true
+								break ParseTDAttributes
+							}
+						}
+					}
+				if tt == html.StartTagToken && tdContainsData {
+					dataTD++
+				} else if tt == html.EndTagToken && dataTD > 0{
+					dataTD--
+				}
 			}
 		}
 	}
 	for _, val := range leadDirectory {
-		fmt.Println(val.Name, val.Title, val.CompanyName)
+		fmt.Println(val.Name, val.Title, val.CompanyName, val.Geography)
 	}
 }
 
