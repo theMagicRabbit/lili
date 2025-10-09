@@ -38,6 +38,8 @@ type State struct {
 	ChanMap        map[int]chan bool
 	FinishedChans  int
 	TotalChans     int
+	OutputDir      string
+	ArchiveDir     string
 }
 
 func main() {
@@ -68,16 +70,16 @@ func main() {
 	inputDir := path.Join(userHome, input)
 	inputFileGlob := fmt.Sprintf("%s/*.html", inputDir)
 
-	outputDir := path.Join(userHome, output)
+	liliState.OutputDir = path.Join(userHome, output)
 
-	archiveDir := path.Join(userHome, archive)
+	liliState.ArchiveDir = path.Join(userHome, archive)
 
-	err = os.MkdirAll(outputDir, 0750)
+	err = os.MkdirAll(liliState.OutputDir, 0750)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = os.MkdirAll(archiveDir, 0750)
+	err = os.MkdirAll(liliState.ArchiveDir, 0750)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -112,7 +114,7 @@ func main() {
 	}
 
 	outFile := fmt.Sprintf("%s.csv", time.Now().Format("2006-01-02-150405"))
-	outPath := path.Join(outputDir, outFile)
+	outPath := path.Join(liliState.OutputDir, outFile)
 	log.Printf("Writing CSV data to: %s\n",outPath)
 
 	outfile, err := os.Create(outPath)

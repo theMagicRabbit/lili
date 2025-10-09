@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"log"
+	"os"
 	"path"
 )
 
@@ -32,6 +34,16 @@ func (s *State) ProcessHTMLFile(fileName string, isFinished chan bool) {
 		return
 	}
 
+	err = s.ArchiveHTMLFile(fileName)
+	if err != nil {
+		var pathError *os.PathError
+		if errors.As(err, &pathError) {
+			log.Printf("Error while deleting processed file %s: %s\n***Please delete above file or it will be processed again on the next run of lili.\n\n", fileName, pathError.Error())
+		} else {
+			log.Printf("Error on file %s: %s\nManually archive or delete this file\n", fileName, err)
+		}
+	}
+
 	s.ParseHTMLListPage(reader)
 	isFinished <-true
 	close(isFinished)
@@ -39,6 +51,28 @@ func (s *State) ProcessHTMLFile(fileName string, isFinished chan bool) {
 
 func (s *State) ArchiveHTMLFile(fileToArchive string) error {
 	fileName := path.Base(fileToArchive)
+	archivePath := path.Join(s.ArchiveDir, fileName)
+
+	archiveFile, err := os.Create(archivePath)
+	if err != nil {
+		return err
+	}
+	defer archiveFile.Close()
+
+	data, err := os.ReadFile(fileToArchive)
+	if err != nil {
+		return err
+	}
+
+	_, err = archiveFile.Write(data)
+	if err != nil {
+		return err
+	}
+
+	err = os.Remove(fileToArchive)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
