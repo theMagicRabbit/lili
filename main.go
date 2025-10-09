@@ -84,7 +84,7 @@ func main() {
 	}
 
 	liliState.TotalChans = len(liliState.ChanMap)
-	for liliState.FinishedChans < len(liliState.ChanMap) {
+	for liliState.FinishedChans < liliState.TotalChans {
 		for key, ch := range liliState.ChanMap {
 			select {
 			case _ = <-ch:
