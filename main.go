@@ -58,6 +58,16 @@ func main() {
 		log.Fatal("Input directory not listed in config")
 	}
 
+	output, ok := liliState.Config.Directories["output"]
+	if !ok {
+		log.Fatal("Output directory not listed in config")
+	}
+
+	archive, ok := liliState.Config.Directories["archive"]
+	if !ok {
+		log.Fatal("Archive directory not listed in config")
+	}
+
 	userHome, err := os.UserHomeDir()
 	if err != nil {
 		log.Fatal(err)
@@ -65,6 +75,20 @@ func main() {
 
 	inputDir := path.Join(userHome, input)
 	inputFileGlob := fmt.Sprintf("%s/*.html", inputDir)
+
+	outputDir := path.Join(userHome, output)
+
+	archiveDir := path.Join(userHome, archive)
+
+	err = os.MkdirAll(outputDir, 0750)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = os.MkdirAll(archiveDir, 0750)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	inputFiles, err := filepath.Glob(inputFileGlob)
 	if err != nil {
