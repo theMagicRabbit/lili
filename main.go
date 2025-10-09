@@ -15,6 +15,20 @@ type Lead struct {
 	Geography   string
 }
 
+type LeadData int
+
+const (
+	LeadDataNone LeadData = iota
+	LeadDataName
+	LeadDataCompanyName
+	LeadDataGeography
+)
+
+
+type State struct {
+	LeadDataType LeadData
+}
+
 func main() {
 	htmlFile, err := os.Open("samples/sample_list.html")
 	if err != nil {
@@ -41,6 +55,10 @@ func main() {
 
 	leadDirectory:= make(map[string]Lead)
 
+	liliState := State{
+		LeadDataType: LeadDataNone,
+	}
+
 	moreTokens := true
 	for moreTokens {
 		tt := z.Next()
@@ -49,15 +67,36 @@ func main() {
 			moreTokens = false
 		case html.TextToken:
 			if div > 0 {
-				text := string(z.Text())
-				name := strings.TrimSpace(text)
-				if name != "" {
-					if lead, ok := leadDirectory[name]; ok {
-						lead.Name = name
-						leadDirectory[name] = lead
+				text := strings.TrimSpace(string(z.Text()))
+				if text == "" {
+					break
+				}
+				switch liliState.LeadDataType {
+				case LeadDataName:
+					if lead, ok := leadDirectory[text]; ok {
+						lead.Name = text
+						leadDirectory[text] = lead
 					} else {
-						leadDirectory[name] = Lead{
-							Name: name,
+						leadDirectory[text] = Lead{
+							Name: text,
+						}
+					}
+				case LeadDataCompanyName:
+					if lead, ok := leadDirectory[text]; ok {
+						lead.CompanyName = text
+						leadDirectory[text] = lead
+					} else {
+						leadDirectory[text] = Lead{
+							CompanyName: text,
+						}
+					}
+				case LeadDataGeography:
+					if lead, ok := leadDirectory[text]; ok {
+						lead.Geography = text
+						leadDirectory[text] = lead
+					} else {
+						leadDirectory[text] = Lead{
+							Geography: text,
 						}
 					}
 				}
@@ -77,7 +116,7 @@ func main() {
 					tr--
 				}
 			} else if tr > 0 && string(tn) == "div" {
-				divContainsData := false
+				divContainsLeadName := false
 				ParseAttributes:
 					for hasAttr {
 						attrKey, attrVal, moreAttr := z.TagAttr()
@@ -85,12 +124,13 @@ func main() {
 						switch string(attrKey) {
 						case "aria-label":
 							if string(attrVal) == "Lead Name" {
-								divContainsData = true
+								liliState.LeadDataType = LeadDataName
+								divContainsLeadName = true
 								break ParseAttributes
 							}
 						}
 					}
-				if tt == html.StartTagToken && divContainsData {
+				if tt == html.StartTagToken && divContainsLeadName {
 					div++
 				} else if tt == html.EndTagToken && div > 0{
 					div--
@@ -102,3 +142,4 @@ func main() {
 		fmt.Println(val.Name)
 	}
 }
+
