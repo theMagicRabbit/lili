@@ -32,6 +32,9 @@ type State struct {
 	Config         *Config
 	LeadMap        map[string]Lead
 	LeadMapLock    sync.RWMutex
+	ChanMap        map[int]chan bool
+	FinishedChans  int
+	TotalChans     int
 }
 
 func main() {
@@ -40,18 +43,30 @@ func main() {
 		ConfigFileName: "lili/config.toml",
 		LeadMap: make(map[string]Lead),
 		LeadMapLock: sync.RWMutex{},
+		ChanMap: make(map[int]chan bool, 1), 
+		FinishedChans: 0,
 	}
 	err := liliState.ReadConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	reader, err := ReadHTMLFile("samples/sample_list.html")
-	if err != nil {
-		log.Fatal(err)
-	}
+	mapCounter := 0
+	isFinished := make(chan bool, 1)
+	liliState.ChanMap[mapCounter] = isFinished 
+	go liliState.ProcessHTMLFile("samples/sample_list.html", isFinished)
 
-	liliState.ParseHTMLListPage(reader)
+	liliState.TotalChans = len(liliState.ChanMap)
+	for liliState.FinishedChans < len(liliState.ChanMap) {
+		for key, ch := range liliState.ChanMap {
+			select {
+			case _ = <-ch:
+				delete(liliState.ChanMap, key)
+				liliState.FinishedChans++
+			default:
+			}
+		}
+	}
 
 	w := csv.NewWriter(os.Stdout)
 	for _, val := range liliState.LeadMap {
@@ -65,4 +80,16 @@ func main() {
 			log.Fatal(err)
 		}
 	}
+}
+
+func (s *State) ProcessHTMLFile(fileName string, isFinished chan bool) {
+	reader, err := ReadHTMLFile("samples/sample_list.html")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	s.ParseHTMLListPage(reader)
+	isFinished <-true
+	close(isFinished)
 }
