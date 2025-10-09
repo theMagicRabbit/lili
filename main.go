@@ -54,20 +54,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	input, ok := liliState.Config.Directories["input"]
-	if !ok {
-		log.Fatal("Input directory not listed in config")
+	input, output, archive, err := liliState.DirectorySetup()
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	output, ok := liliState.Config.Directories["output"]
-	if !ok {
-		log.Fatal("Output directory not listed in config")
-	}
-
-	archive, ok := liliState.Config.Directories["archive"]
-	if !ok {
-		log.Fatal("Archive directory not listed in config")
-	}
 
 	userHome, err := os.UserHomeDir()
 	if err != nil {
@@ -147,16 +138,4 @@ func main() {
 	}
 
 	// stdout.Flush()
-}
-
-func (s *State) ProcessHTMLFile(fileName string, isFinished chan bool) {
-	reader, err := ReadHTMLFile(fileName)
-	if err != nil {
-		log.Println(err)
-		return
-	}
-
-	s.ParseHTMLListPage(reader)
-	isFinished <-true
-	close(isFinished)
 }
