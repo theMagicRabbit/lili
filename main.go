@@ -30,7 +30,9 @@ const (
 
 
 type State struct {
-	LeadDataType LeadData
+	LeadDataType   LeadData
+	ConfigFileName string
+	Config         *Config
 }
 
 func main() {
@@ -61,6 +63,11 @@ func main() {
 
 	liliState := State{
 		LeadDataType: LeadDataNone,
+		ConfigFileName: "lili/config.toml",
+	}
+	err = liliState.ReadConfig()
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	moreTokens := true

@@ -1,0 +1,5 @@
+[directories]
+input   = "Downloads/lili"
+output  = "Documents/lili/csv"
+archive = "Documents/lili/processed"
+
