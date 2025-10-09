@@ -154,7 +154,7 @@ func main() {
 					}
 				if tt == html.StartTagToken && divContainsData {
 					dataDiv++
-				} else if tt == html.EndTagToken && dataDiv > 0{
+				} else if tt == html.EndTagToken && dataDiv > 0 {
 					dataDiv--
 				}
 			} else if tr > 0 && string(tn) == "span" {
@@ -174,7 +174,7 @@ func main() {
 					}
 				if tt == html.StartTagToken && spanContainsData {
 					dataSpan++
-				} else if tt == html.EndTagToken && dataSpan > 0{
+				} else if tt == html.EndTagToken && dataSpan > 0 {
 					dataSpan--
 				}
 			} else if tr > 0 && string(tn) == "td" {
@@ -194,7 +194,7 @@ func main() {
 					}
 				if tt == html.StartTagToken && tdContainsData {
 					dataTD++
-				} else if tt == html.EndTagToken && dataTD > 0{
+				} else if tt == html.EndTagToken && dataTD > 0 {
 					dataTD--
 				}
 			}
