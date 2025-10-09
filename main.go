@@ -142,12 +142,12 @@ func main() {
 								divContainsData = true
 								break ParseDivAttributes
 							}
-						// case "data-anonymize":
-						// 	if string(attrVal) == "job-title" {
-						// 		liliState.LeadDataType = LeadDataTitle
-						// 		divContainsData = true
-						// 		break ParseDivAttributes
-						// 	}
+						case "data-anonymize":
+							if string(attrVal) == "job-title" {
+								liliState.LeadDataType = LeadDataTitle
+								divContainsData = true
+								break ParseDivAttributes
+							}
 						}
 					}
 				if tt == html.StartTagToken && divContainsData {
