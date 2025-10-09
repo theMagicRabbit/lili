@@ -11,6 +11,7 @@ import (
 
 type Lead struct {
 	Name        string
+	Title       string
 	CompanyName string
 	Geography   string
 }
@@ -20,6 +21,7 @@ type LeadData int
 const (
 	LeadDataNone LeadData = iota
 	LeadDataName
+	LeadDataTitle
 	LeadDataCompanyName
 	LeadDataGeography
 )
@@ -50,7 +52,7 @@ func main() {
 	cleanFile.WriteString(screwYouLinkedInString)
 	defer cleanFile.Close()
 	
-	table, tr, div := 0, 0, 0
+	table, tr, dataNode := 0, 0, 0
 	z := html.NewTokenizer(screwYouLinkedInReader)
 
 	leadDirectory:= make(map[string]Lead)
@@ -66,7 +68,7 @@ func main() {
 		case html.ErrorToken:
 			moreTokens = false
 		case html.TextToken:
-			if div > 0 {
+			if dataNode > 0 {
 				text := strings.TrimSpace(string(z.Text()))
 				if text == "" {
 					break
@@ -99,6 +101,15 @@ func main() {
 							Geography: text,
 						}
 					}
+				case LeadDataTitle:
+					if lead, ok := leadDirectory[text]; ok {
+						lead.Title = text
+						leadDirectory[text] = lead
+					} else {
+						leadDirectory[text] = Lead{
+							Title: text,
+						}
+					}
 				}
 			}
 		case html.StartTagToken, html.EndTagToken:
@@ -116,8 +127,8 @@ func main() {
 					tr--
 				}
 			} else if tr > 0 && string(tn) == "div" {
-				divContainsLeadName := false
-				ParseAttributes:
+				divContainsData := false
+				ParseDivAttributes:
 					for hasAttr {
 						attrKey, attrVal, moreAttr := z.TagAttr()
 						hasAttr = moreAttr
@@ -125,21 +136,47 @@ func main() {
 						case "aria-label":
 							if string(attrVal) == "Lead Name" {
 								liliState.LeadDataType = LeadDataName
-								divContainsLeadName = true
-								break ParseAttributes
+								divContainsData = true
+								break ParseDivAttributes
+							}
+						case "data-anonymize":
+							if string(attrVal) == "job-title" {
+								liliState.LeadDataType = LeadDataTitle
+								divContainsData = true
+								break ParseDivAttributes
 							}
 						}
 					}
-				if tt == html.StartTagToken && divContainsLeadName {
-					div++
-				} else if tt == html.EndTagToken && div > 0{
-					div--
+				if tt == html.StartTagToken && divContainsData {
+					dataNode++
+				} else if tt == html.EndTagToken && dataNode > 0{
+					dataNode--
+				}
+			} else if tr > 0 && string(tn) == "span" {
+				spanContainsData := false
+				ParseSpanAttributes:
+					for hasAttr {
+						attrKey, attrVal, moreAttr := z.TagAttr()
+						hasAttr = moreAttr
+						switch string(attrKey) {
+						case "data-anonymize":
+							if string(attrVal) == "company-name" {
+								liliState.LeadDataType = LeadDataCompanyName
+								spanContainsData = true
+								break ParseSpanAttributes
+							}
+						}
+					}
+				if tt == html.StartTagToken && spanContainsData {
+					dataNode++
+				} else if tt == html.EndTagToken && dataNode > 0{
+					dataNode--
 				}
 			}
 		}
 	}
 	for _, val := range leadDirectory {
-		fmt.Println(val.Name)
+		fmt.Println(val.Name, val.CompanyName)
 	}
 }
 
