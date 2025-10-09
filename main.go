@@ -71,7 +71,7 @@ func main() {
 			moreTokens = false
 		case html.TextToken:
 			if dataDiv > 0 || dataSpan > 0 || dataTD > 0 {
-				text := strings.TrimSpace(string(z.Text()))
+				text := strings.ReplaceAll(strings.TrimSpace(string(z.Text())), ",", "")
 				if text == "" {
 					break
 				}
