@@ -150,7 +150,7 @@ func main() {
 }
 
 func (s *State) ProcessHTMLFile(fileName string, isFinished chan bool) {
-	reader, err := ReadHTMLFile("samples/sample_list.html")
+	reader, err := ReadHTMLFile(fileName)
 	if err != nil {
 		log.Println(err)
 		return
