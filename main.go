@@ -62,6 +62,8 @@ func main() {
 	}
 
 	moreTokens := true
+	var lastUsedName string
+
 	for moreTokens {
 		tt := z.Next()
 		switch tt {
@@ -83,30 +85,31 @@ func main() {
 							Name: text,
 						}
 					}
+					lastUsedName = text
 				case LeadDataCompanyName:
-					if lead, ok := leadDirectory[text]; ok {
+					if lead, ok := leadDirectory[lastUsedName]; ok {
 						lead.CompanyName = text
-						leadDirectory[text] = lead
+						leadDirectory[lastUsedName] = lead
 					} else {
-						leadDirectory[text] = Lead{
+						leadDirectory[lastUsedName] = Lead{
 							CompanyName: text,
 						}
 					}
 				case LeadDataGeography:
-					if lead, ok := leadDirectory[text]; ok {
+					if lead, ok := leadDirectory[lastUsedName]; ok {
 						lead.Geography = text
-						leadDirectory[text] = lead
+						leadDirectory[lastUsedName] = lead
 					} else {
-						leadDirectory[text] = Lead{
+						leadDirectory[lastUsedName] = Lead{
 							Geography: text,
 						}
 					}
 				case LeadDataTitle:
-					if lead, ok := leadDirectory[text]; ok {
+					if lead, ok := leadDirectory[lastUsedName]; ok {
 						lead.Title = text
-						leadDirectory[text] = lead
+						leadDirectory[lastUsedName] = lead
 					} else {
-						leadDirectory[text] = Lead{
+						leadDirectory[lastUsedName] = Lead{
 							Title: text,
 						}
 					}
