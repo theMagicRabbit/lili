@@ -142,12 +142,12 @@ func main() {
 								divContainsData = true
 								break ParseDivAttributes
 							}
-						case "data-anonymize":
-							if string(attrVal) == "job-title" {
-								liliState.LeadDataType = LeadDataTitle
-								divContainsData = true
-								break ParseDivAttributes
-							}
+						// case "data-anonymize":
+						// 	if string(attrVal) == "job-title" {
+						// 		liliState.LeadDataType = LeadDataTitle
+						// 		divContainsData = true
+						// 		break ParseDivAttributes
+						// 	}
 						}
 					}
 				if tt == html.StartTagToken && divContainsData {
@@ -155,31 +155,32 @@ func main() {
 				} else if tt == html.EndTagToken && dataNode > 0{
 					dataNode--
 				}
-			} else if tr > 0 && string(tn) == "span" {
-				spanContainsData := false
-				ParseSpanAttributes:
-					for hasAttr {
-						attrKey, attrVal, moreAttr := z.TagAttr()
-						hasAttr = moreAttr
-						switch string(attrKey) {
-						case "data-anonymize":
-							if string(attrVal) == "company-name" {
-								liliState.LeadDataType = LeadDataCompanyName
-								spanContainsData = true
-								break ParseSpanAttributes
-							}
-						}
-					}
-				if tt == html.StartTagToken && spanContainsData {
-					dataNode++
-				} else if tt == html.EndTagToken && dataNode > 0{
-					dataNode--
-				}
 			}
+			// else if tr > 0 && string(tn) == "span" {
+			// 	spanContainsData := false
+			// 	ParseSpanAttributes:
+			// 		for hasAttr {
+			// 			attrKey, attrVal, moreAttr := z.TagAttr()
+			// 			hasAttr = moreAttr
+			// 			switch string(attrKey) {
+			// 			case "data-anonymize":
+			// 				if string(attrVal) == "company-name" {
+			// 					liliState.LeadDataType = LeadDataCompanyName
+			// 					spanContainsData = true
+			// 					break ParseSpanAttributes
+			// 				}
+			// 			}
+			// 		}
+			// 	if tt == html.StartTagToken && spanContainsData {
+			// 		dataNode++
+			// 	} else if tt == html.EndTagToken && dataNode > 0{
+			// 		dataNode--
+			// 	}
+			// }
 		}
 	}
 	for _, val := range leadDirectory {
-		fmt.Println(val.Name, val.CompanyName)
+		fmt.Println(val.Name, val.Title)
 	}
 }
 
