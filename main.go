@@ -8,6 +8,7 @@ import (
 	"path"
 	"path/filepath"
 	"sync"
+	"time"
 )
 
 type Lead struct {
@@ -119,18 +120,33 @@ func main() {
 		}
 	}
 
-	w := csv.NewWriter(os.Stdout)
-	for _, val := range liliState.LeadMap {
-		if err := w.Write([]string{val.Name, val.Title, val.CompanyName, val.Geography}); err != nil {
-			log.Fatal(err)
-		}
+	outFile := fmt.Sprintf("%s.csv", time.Now().Format("2006-01-02-150405"))
+	outPath := path.Join(outputDir, outFile)
+	log.Println(outPath)
 
-		w.Flush()
-
-		if err := w.Error(); err != nil {
-			log.Fatal(err)
-		}
+	outfile, err := os.Create(outPath)
+	if err != nil {
+		log.Fatal(err)
 	}
+	defer outfile.Close()
+
+	stdout := csv.NewWriter(os.Stdout)
+	outfileW := csv.NewWriter(outfile)
+	for _, val := range liliState.LeadMap {
+		row := []string{val.Name, val.Title, val.CompanyName, val.Geography}
+		if err := outfileW.Write(row); err != nil {
+			log.Fatal(err)
+		}
+
+		stdout.Write(row)
+	}
+
+	outfileW.Flush()
+	if err := outfileW.Error(); err != nil {
+		log.Fatal(err)
+	}
+
+	stdout.Flush()
 }
 
 func (s *State) ProcessHTMLFile(fileName string, isFinished chan bool) {
